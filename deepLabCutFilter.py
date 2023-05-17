@@ -2,6 +2,9 @@
 """
 This script is for analyzing csv outputs from deeplabcut. The data are filtered
 for possible errors and then an analysis of movement is performed.
+
+Code by Luigim Vargas
+May 17th, 2023
 """
 import pandas as pd
 import numpy as np
