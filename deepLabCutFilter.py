@@ -9,8 +9,9 @@ May 17th, 2023
 import pandas as pd
 import numpy as np
 
+
 #Import the data and change to numpy array
-ofData=pd.read_csv("C:\\Users\\luigi\\Downloads\\apDMSvideos\\pb16_bilateralDeepCut_resnet50_laserInCabinetMar10shuffle1_1030000.csv",header=[1,2])
+ofData=pd.read_csv("SampleData\\pb16_bilateralDeepCut_resnet50_laserInCabinetMar10shuffle1_1030000.csv",header=[1,2])
 ofData=np.asarray(ofData)
 
 #%% Cell for cleaning coordinate data
@@ -122,4 +123,22 @@ for i in range(tailCords.shape[0]-1):
     angle[i]=180/np.pi*angle[i]
     
 #%%  Cell for correlating with laser
+
+import scipy.io as sio
+laserStruct=sio.loadmat("SampleData\\pb16_bilateral_LaserTimes.mat")
+
+#Create new arrays with laser times converted to frame number (at 10 frames per second)
+#In this experiment, we are limiting analysis to 80 laser bouts.
+
+laserOnTimes=np.zeros(80)
+laserOffTimes=np.zeros(80)
+for i in range(80):
+    laserOnTimes[i]=round(laserStruct['LaserOnTimes'][i][0]*10)
+    laserOffTimes[i]=round(laserStruct['LaserOffTimes'][i][0]*10)
+
+#Extract 0.5 second windows around laser On & Off to see if there's an effect
+
+for i in range(80):
+    ...
+
 
