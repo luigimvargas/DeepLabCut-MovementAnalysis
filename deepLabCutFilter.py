@@ -8,8 +8,18 @@ May 17th, 2023
 """
 import pandas as pd
 import numpy as np
+import tkinter
+from tkinter import filedialog
+import os
 
+def openFile():
+    filepath = filedialog.askopenfilename()
+    return filepath
 
+root = tkinter.Tk()
+root.withdraw()
+filename = filedialog.askopenfilename(parent=root)
+#%%
 #Import the data and change to numpy array
 ofData=pd.read_csv("SampleData\\pb16_bilateralDeepCut_resnet50_laserInCabinetMar10shuffle1_1030000.csv",header=[1,2])
 ofData=np.asarray(ofData)
@@ -17,9 +27,9 @@ ofData=np.asarray(ofData)
 #%% Cell for cleaning coordinate data
 #Cut data length to 20 minutes or, at 10fps, 12000 frames
 # (Make it start at 10 seconds prior to first laser)
-noseCords=ofData[0:12000,[1,2]]
-bodyCords=ofData[0:12000,[4,5]]
-tailCords=ofData[0:12000,[7,8]]
+noseCords=ofData[:,[1,2]]
+bodyCords=ofData[:,[4,5]]
+tailCords=ofData[:,[7,8]]
 
 #Basic distance formula we will be using repeatedly
 def distance(x1,x0,y1,y0):
@@ -137,8 +147,66 @@ for i in range(80):
     laserOffTimes[i]=round(laserStruct['LaserOffTimes'][i][0]*10)
 
 #Extract 0.5 second windows around laser On & Off to see if there's an effect
-
+#In these arrays, column 0 is pre-laser and column 1 is post-laser
+alignedVelocityLaserOn=np.zeros((80,2),)
+alignedVelocityLaserOff=np.zeros((80,2),)
+#Repeat for body angle
+alignedTurningLaserOn=np.zeros((80,2),)
+alignedTurningLaserOff=np.zeros((80,2),)
 for i in range(80):
-    ...
+    alignedVelocityLaserOn[i,0]=mouseVelocity[int(laserOnTimes[i]-5)]
+    alignedVelocityLaserOn[i,1]=mouseVelocity[int(laserOnTimes[i]+5)]
+    alignedVelocityLaserOff[i,0]=mouseVelocity[int(laserOffTimes[i]-5)]
+    alignedVelocityLaserOff[i,1]=mouseVelocity[int(laserOffTimes[i]+5)]
+    
+    alignedTurningLaserOn[i,0]=angle[int(laserOnTimes[i]-5)]
+    alignedTurningLaserOn[i,1]=angle[int(laserOnTimes[i]+5)]
+    alignedTurningLaserOff[i,0]=angle[int(laserOffTimes[i]-5)]
+    alignedTurningLaserOff[i,1]=angle[int(laserOffTimes[i]+5)]
 
+#%% Graph Results
 
+from matplotlib import pyplot as plt 
+
+#Function for repeated plotting. turningOn will keep track of whether the data corresponds
+#to the data turning On or Off to color points appropriately.
+def laserPlot(alignedLaserPoints,turningOn):
+    if turningOn==True:
+        colorPre=[0.9,0.9,0.9]
+        colorPost='g'
+    else:
+        colorPre='g'
+        colorPost=[0.9,0.9,0.9]
+    for i in range(80):
+        plt.scatter(1,alignedLaserPoints[i,0],color=colorPre)
+        plt.scatter(2,alignedLaserPoints[i,1],color=colorPost)
+        plt.plot([1,2],[alignedLaserPoints[i,0],alignedLaserPoints[i,1]],color=[0.9,0.9,0.9])
+    plt.plot([1,2],[np.mean(alignedLaserPoints[:,0]),np.mean(alignedLaserPoints[:,1])],color='k')    
+    return
+plt.subplot(2,2,1)
+laserPlot(alignedVelocityLaserOn,True)
+plt.xticks([1,2],labels=["Laser Off","Laser On"])
+plt.xlim([0,3])
+plt.ylabel("Velocity (AU)")
+plt.title("pb16 Laser Turning On Effect on Velocity")
+
+plt.subplot(2,2,2)
+laserPlot(alignedVelocityLaserOff,False)
+plt.xticks([1,2],labels=["Laser On","Laser Off"])
+plt.xlim([0,3])
+plt.ylabel("Velocity (AU)")
+plt.title("pb16 Laser Turning Off Effect on Velocity")
+
+plt.subplot(2,2,3)
+laserPlot(alignedTurningLaserOn,True)
+plt.xticks([1,2],labels=["Laser Off","Laser On"])
+plt.xlim([0,3])
+plt.ylabel("Body Angle (Degrees)")
+plt.title("pb16 Laser Turning On Effect on Body Angle")
+
+plt.subplot(2,2,4)
+laserPlot(alignedTurningLaserOff,False)
+plt.xticks([1,2],labels=["Laser On","Laser Off"])
+plt.xlim([0,3])
+plt.ylabel("Body Angle (Degrees)")
+plt.title("pb16 Laser Turning Off Effect on Body Angle")
