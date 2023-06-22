@@ -3,22 +3,49 @@
 This function is for analyzing csv outputs from deeplabcut. The data are filtered
 for possible errors and then an analysis of movement is performed.
 
-When running this code, two pop up windows will appear to prompt a file input.
-The first input should be the coordinate data as a csv output from deeplabcut.
-The second input is a matlab matrix. Each row of this matrix represents a 
-distinct laser event. The first column of each row is the time that the laser
-turns on & the second column is the time that the laser turns off. 
-
-    In this case, the times are encoded in seconds whereas the deeplabcut 
-    coordinates are encoded in frames per second. Seconds are multiplied by 
-    frames per second (fps) to account for this difference. Be sure to account 
-    for this step for any other situations.
-
 Moreover, we are using a 0.5 second window around the laser turning on and off
 for our analyses here. I did this because my laser lengths are 1.5 seconds.
 If your laser time is much shorter, this window might be too long. Change 
 halfSecFrames as necessary to shorten or elongate the window.
- 
+
+INPUTS: 
+    coordinate_path = path to deeplabcut csv coordinate data. 3 body positions
+    are being tracked and, after the first column, each position has 3 columns
+    that correspond to it (x, y, likelihood). We will not be using the
+    likelihood column for filtering. Instead, we catch errors with unlikely
+    distance changes.
+    
+    laser_path = path to matlab matrix containing the laser on/off times.
+    In this case, the laser times are encoded in seconds whereas the deeplabcut 
+    coordinates are encoded in frames per second. Seconds are multiplied by 
+    frames per second (fps) to account for this difference. Be sure to account 
+    for this step for any other situations.
+    
+    fps = frames per second for video (10 in sample data)
+    
+    num_events = number of laser on/off events for a given experiment. I 
+    limited my analysis to 80 events for the sample data.
+    
+OUTPUTS:
+    animalName = string containing the name of the subject. Name is
+    extrapolated from the first characters in the laser path data.
+    
+    alignedVelocityLaserOn = mean velocity for the 0.5 seconds prior to the
+    laser turning on for all events in column 0. In column 1, mean velocity
+    after the laser turned on for all events. 
+    
+    alignedVelocityLaserOff = mean velocity for the 0.5 seconds prior to the
+    laser turning off for all events in column 0. In column 1, mean velocity
+    after the laser turned off for all events. 
+    
+    alignedTurningLaserOn = mean body angle for the 0.5 seconds prior to the
+    laser turning on for all events in column 0. In column 1, mean body angle
+    after the laser turned on for all events. 
+    
+    alignedTurningLaserOff = mean body angle for the 0.5 seconds prior to the
+    laser turning off for all events in column 0. In column 1, mean body angle
+    after the laser turned off for all events. 
+    
 Code by Luigim Vargas
 May 17th, 2023
 """
@@ -31,7 +58,7 @@ def deepLabCut_FiltLaser(coordinate_path,laser_path,fps,num_events):
     #Infer animal name from coordinate_path
     ofData=pd.read_csv(coordinate_path,header=[1,2])
     ofData=np.asarray(ofData)
-    animalName=coordinate_path.split('/')[-1].split('_')[0]
+    
     #%% Cell for cleaning coordinate data
     #Cut data length to 20 minutes or, at 10fps, 12000 frames
     # (Make it start at 10 seconds prior to first laser)
@@ -99,11 +126,10 @@ def deepLabCut_FiltLaser(coordinate_path,laser_path,fps,num_events):
     
     mouseVelocity=np.zeros(tailCords.shape[0])
     #Calculate Speed using displacement over 0.5 seconds
-    #Change halfSecFrames as necessary if you need a smaller window to average
-    halfSecFrames=fps/2
+    #Change velocit frames as necessary if you need a smaller window to average
     
     for i in range(5,tailCords.shape[0]-1):
-        mouseVelocity[i]=distance(tailDataFiltered[i,0],tailDataFiltered[i-halfSecFrames,0],tailDataFiltered[i,1],tailDataFiltered[i-halfSecFrames,1])
+        mouseVelocity[i]=distance(tailDataFiltered[i,0],tailDataFiltered[i-5,0],tailDataFiltered[i,1],tailDataFiltered[i-5,1])
     
     # Calculate turning as deltas of angles between body and tail, body and nose
     
@@ -155,7 +181,7 @@ def deepLabCut_FiltLaser(coordinate_path,laser_path,fps,num_events):
     
     
     laserStruct=sio.loadmat(laser_path)
-    
+    animalName=laser_path.split('/')[-1].split('_')[0]
     #Create new arrays with laser times converted to frame number
     laserOnTimes=np.zeros(num_events)
     laserOffTimes=np.zeros(num_events)

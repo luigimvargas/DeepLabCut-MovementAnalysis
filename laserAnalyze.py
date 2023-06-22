@@ -14,6 +14,13 @@ to which direction the animal turns.
 
 Make sure to define variables (fps, num events) below for your specific project
 
+When running this code, two pop up windows will appear to prompt a file input
+for each animal.The first input should be the coordinate data as a csv output
+from deeplabcut. The second input is a matlab matrix. Each row of the matlab
+matrix represents a distinct laser event. The first column of each row is the
+time that the laser turns on & the second column is the time that the laser
+turns off. 
+
 @author: Luigim Vargas
 June 8th, 2023
 """
@@ -25,7 +32,7 @@ from deepLabCut_FiltLaser import deepLabCut_FiltLaser
 
 #DEFINE VARIABLES
 #Change these lines as needed
-nAnimals=2 
+nAnimals=2
 fps=10
 num_events=80
 
@@ -66,8 +73,8 @@ for i in range(nAnimals):
 
 from matplotlib import pyplot as plt 
 
-#Function for repeated plotting. turningOn will keep track of whether the data corresponds
-#to the data turning On or Off to color points appropriately.
+#Function for repeated plotting. turningOn will keep track of whether the data
+# corresponds to the laser turning ON or OFF to color points appropriately.
 def laserPlot(pre,post,turningOn):
     if turningOn==True:
         colorPre=[0.9,0.9,0.9]
@@ -81,6 +88,9 @@ def laserPlot(pre,post,turningOn):
         plt.plot([1,2],[pre[i],post[i]],color=[0.9,0.9,0.9])
     plt.plot([1,2],[np.mean(pre[:]),np.mean(post[:])],color='k')    
     return
+
+# For those on using spyder, to make pop-out window use python > preferences >
+# IPython console > Graphics > Graphics backend > Backend: Automatic
 
 plt.subplot(2,2,1)
 laserPlot(vel_on_pre,vel_on_post,True)
@@ -109,3 +119,12 @@ plt.xticks([1,2],labels=["Laser On","Laser Off"])
 plt.xlim([0,3])
 plt.ylabel("Body Angle (Degrees)")
 plt.title([" Laser Turning Off Effect on Body Angle"])
+
+#%% Final Table for exporting
+exportTable=pd.DataFrame()
+for i in range(nAnimals):
+    exportTable[dataStorage.loc[0][i]]=[vel_on_pre[i],vel_on_post[i],
+                                        vel_off_pre[i],vel_off_post[i],
+                                        angle_on_pre[i],angle_on_post[i],
+                                        angle_off_pre[i],angle_off_post[i]]
+    
