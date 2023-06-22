@@ -3,6 +3,9 @@
 Python script for cleaning deeplabcut data and analyzing movement behaviors
 throughout a session.
 
+# Example output
+ ![Figure not generated from sample data](SampleData/SampleFigure.png)
+ 
 
 We are conducting analysis to see how behaviors change around windows of
 optogentic manipulation. We are analyzing for effects as a laser turns on
