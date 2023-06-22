@@ -8,9 +8,10 @@ effects as a laser turns off (off_pre -> off_post)
 
 Currently no statistics are being taken to determine whether effect sizes are
 signficantly significant. Sample data taken from open field sessions that are
-not comparable (bilateral vs unilateral). For unilateral laser manipulations, 
-this code should suffice because the method of measuring body angle is agnostic
-to which direction the animal turns.
+not comparable (bilateral vs unilateral). For unilateral laser manipulations,
+side of manipulation potentially biasing turns in one direction should not
+matter because the method of measuring body angle is agnostic to which
+direction the animal turns.
 
 Make sure to define variables (fps, num events) below for your specific project
 
@@ -121,6 +122,8 @@ plt.ylabel("Body Angle (Degrees)")
 plt.title([" Laser Turning Off Effect on Body Angle"])
 
 #%% Final Table for exporting
+# 1 Column for each animal. All rows correspond to the mean velocity and body 
+# angles for that animal when the laser turns on or off. 
 exportTable=pd.DataFrame()
 for i in range(nAnimals):
     exportTable[dataStorage.loc[0][i]]=[vel_on_pre[i],vel_on_post[i],

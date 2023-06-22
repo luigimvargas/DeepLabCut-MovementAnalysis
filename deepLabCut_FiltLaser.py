@@ -5,8 +5,8 @@ for possible errors and then an analysis of movement is performed.
 
 Moreover, we are using a 0.5 second window around the laser turning on and off
 for our analyses here. I did this because my laser lengths are 1.5 seconds.
-If your laser time is much shorter, this window might be too long. Change 
-halfSecFrames as necessary to shorten or elongate the window.
+If your laser time is much shorter, this window might be too long. See line 200
+for a possible change point for your data
 
 INPUTS: 
     coordinate_path = path to deeplabcut csv coordinate data. 3 body positions
@@ -178,9 +178,9 @@ def deepLabCut_FiltLaser(coordinate_path,laser_path,fps,num_events):
         angle[i]=180/np.pi*angle[i]
         
     #%%  Cell for correlating with laser
-    
-    
+    #Can replace with a regular structure holding laser times and/or paths
     laserStruct=sio.loadmat(laser_path)
+    
     animalName=laser_path.split('/')[-1].split('_')[0]
     #Create new arrays with laser times converted to frame number
     laserOnTimes=np.zeros(num_events)
@@ -196,6 +196,9 @@ def deepLabCut_FiltLaser(coordinate_path,laser_path,fps,num_events):
     #Repeat for body angle
     alignedTurningLaserOn=np.zeros((num_events,2),)
     alignedTurningLaserOff=np.zeros((num_events,2),)
+    
+    #For sample data, fps/2 gives 5 frames which is equal to 0.5 seconds.
+    #Change fps/2 to a number that gives your desired window size.
     for i in range(num_events):
         alignedVelocityLaserOn[i,0]=mouseVelocity[int(laserOnTimes[i]-fps/2)]
         alignedVelocityLaserOn[i,1]=mouseVelocity[int(laserOnTimes[i]+fps/2)]
